@@ -1,0 +1,29 @@
+// notes
+// css3 animation js http://stackoverflow.com/questions/4797675/how-do-i-re-trigger-a-webkit-css-animation-via-javascript
+
+// vars 
+$padding: 5px;
+$radius: 40px;
+$rows: 8;
+$cols: 15;
+
+$color_game_highlight: #d8fd27;
+$color_game_border: #f92666;
+$color_body: #272822;
+
+$width_game_border: 4px;
+$height_scoreboard: 70px;
+
+// sphere colors
+$s1: #79b5e9; //blue
+$s2: #e97979; //red
+$s3: #79e98b; //green
+$s4: #e9c879; //orange 
+$s5: #e979e8; //purple
+$scolors: ($s1, $s2, $s3, $s4, $s5);
+
+// fonts
+$font_opensans: 'Open Sans', 'Open Sans local', Tahoma, Geneva, sans-serif;
+$font_sniglet: 'Sniglet', "Arial Black", Gadget, cursive;
+$font_luckiest: 'Luckiest Guy', Impact, Charcoal, "Arial Black", Gadget, cursive;
+$font_titanone: 'TitanOne', "Arial Black", Gadget, cursive;

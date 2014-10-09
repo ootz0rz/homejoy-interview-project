@@ -1,0 +1,215 @@
+@import "config";
+
+@import "index.localfonts";
+
+// functions ---------------------------------------
+@mixin sphere($color) {
+	$c1: lighten($color, 5);
+	$c2: $color;
+	$c3: darken($color, 40);
+	$shadow: $c2;//darken($c3, 5);
+
+	$p1: -20px;
+	$p2: -20px;
+
+	border-style: solid;
+	border-color: $c1;
+	border-width: 1px;
+
+	background-color: $color;
+
+	background-position: center center;
+	background-image: -moz-radial-gradient($p1 $p2, circle , $c1 0%, $c2 50%, $c3 100%);
+	background-image: -webkit-radial-gradient($p1 $p2, circle , $c1 0%, $c2 50%, $c3 100%);
+}
+
+@mixin sphere_shadow($color) {
+	$c1: lighten($color, 5);
+	$c2: $color;
+	$c3: darken($color, 40);
+	$shadow: $c2;//darken($c3, 5);
+
+	box-shadow: 1px 1px 3px $shadow;
+	-moz-box-shadow: 1px 1px 3px $shadow;
+	-webkit-box-shadow: 1px 1px 3px $shadow;
+}
+
+@mixin blendshadow($c1, $c2, $c3, $c4, $c5, $step: -5px) {
+	color: #fff;
+
+	$blur: 3px;
+	text-shadow:
+		2px 0 0 #000,
+		0 2px 0 #000,
+		-2px 0 0 #000,
+		0 -2px 0 #000,
+
+		($step * 1) ($step * -1) $blur $c1,
+		($step * -2) ($step * 1) $blur $c2,
+		($step * 3) ($step * 1) $blur $c3,
+		($step * -4) ($step * 1) $blur $c4,
+		($step * 5) ($step * -1) $blur $c5,
+
+		($step * -1.5) ($step * 1.5) $blur*3 $c5,
+		($step * 2.5) ($step * -1.5) $blur*3 $c4,
+		($step * -3.5) ($step * -1.5) $blur*3 $c3,
+		($step * 4.5) ($step * -1.5) $blur*3 $c2,
+		($step * -5.5) ($step * 1.5) $blur*3 $c1;
+}
+
+@mixin neontext($color, $step: 2px) {
+	color: lighten($color_game_border, 40);
+
+	text-shadow:
+		0 0 $step lighten($color,10),
+		0 0 $step*2 lighten($color,20),
+		0 0 $step*3 $color,
+		0 0 $step*4 darken($color, 5),
+		0 0 $step*7 darken($color, 5),
+		0 0 $step*8 darken($color, 5),
+		0 0 $step*10 darken($color, 10),
+		0 0 $step*15 darken($color, 10),
+
+		1px 0 $step lighten($color,40),
+		0 1px $step lighten($color,40),
+		-1px 0 $step lighten($color,40),
+		0 -1px $step lighten($color,40);
+}
+
+@mixin btnGradient($color) {
+	$tbot_color1: $color;
+
+	// main colors
+	$tbot_color2: saturate(darken($tbot_color1, 10), 10);
+	$tbot_color3: saturate(darken($tbot_color2, 10), 10);
+	$tbot_color4: saturate(darken($tbot_color3, 10), 10);
+
+    background-color: $tbot_color1;
+    background-image: -moz-linear-gradient(top, $tbot_color1 0%, $tbot_color2 50%, $tbot_color3 50%, $tbot_color4 100%);
+    background-image: -webkit-linear-gradient(top, $tbot_color1 0%, $tbot_color2 50%, $tbot_color3 50%, $tbot_color4 100%);
+    background-image: linear-gradient(top, $tbot_color1 0%, $tbot_color2 50%, $tbot_color3 50%, $tbot_color4 100%);
+}
+
+@mixin makebutton($color, $shadow: rgba(0, 0, 0, 0.8)) {
+	text-decoration: none;
+	text-shadow: 0px -1px 1px $shadow;
+
+	-webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+
+    -webkit-box-shadow: inset 0px 0px 0px 1px rgba(255, 115, 100, 0.4), 0 1px 3px #333333;
+    -moz-box-shadow: inset 0px 0px 0px 1px rgba(255, 115, 100, 0.4), 0 1px 3px #333333;
+    box-shadow: inset 0px 0px 0px 1px rgba(255, 115, 100, 0.4), 0 1px 3px #333333;
+
+    @include btnGradient($color);
+}
+
+@mixin link-button($height) {
+	display: inline-block;
+
+	color: #fff;
+
+	height: ($height - $width_game_border) / 2;
+
+	text-align: center;
+	vertical-align: middle;
+	font-weight: bold;
+	line-height: 2em;
+
+	padding: 0;
+	margin: 0;
+
+	padding-left: 1em;
+	padding-right: 1em;
+
+	@include makebutton(lighten($color_game_border, 15));
+
+	&#btnScores {
+		position: absolute;
+		bottom: 0;
+	}
+
+	&:hover {
+		@include btnGradient($color_game_highlight);
+
+		text-shadow:
+			-1px 0px 1px #000,
+			1px 0px 1px #000,
+			0px -1px 1px #000,
+			0px 1px 1px #000;
+	}
+}
+
+@mixin sphere0_border($side, $width: 1px, $style: solid) {
+	border-#{$side}-style: $style;
+	border-#{$side}-width: $width;
+}
+
+/* page look */
+html {
+	-webkit-font-smoothing: antialiased;
+	height: 100%;
+}
+
+body {
+	background-color: $color_body;
+	overflow: hidden;
+
+	font-family: $font_opensans;
+	color: #fff;
+
+	height: 100%;
+	margin: 0;
+	padding: 0;
+}
+
+a {
+	color: #fff;
+
+	&:hover {
+		color: $color_game_border;
+	}
+}
+
+/* page elements */
+#title {
+	//display: none;
+	z-index: 900;
+
+	color: #fff;
+	margin: 0px auto;
+
+	width: 100%;
+	text-align: center;
+
+	font-size: 3em;
+	font-family: $font_sniglet;
+
+	line-height: 1.5em;
+
+	@include blendshadow($s1, $s2, $s3, $s4, $s5);
+
+	span {
+		z-index: 900;
+		font-family: $font_luckiest;
+		@include neontext($color_game_border);
+	}
+
+	&.blocks {
+		z-index: 900;
+		font-family: $font_titanone;
+	}
+}
+
+#input {
+	color: #fff;
+	margin: 0px auto;
+
+	width: 100%;
+	text-align: center;
+}
+
+#map-canvas {
+	height: 100%;
+}

@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/index.css') }}">
+        <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+
+        <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key={{ API_KEY }}&libraries=geometry,visualization"></script>
+    </head>
+    <body>
+        <div id="title">Route-O-Matic <span>v1.0</span></div>
+        <div id="input">
+            <form>
+                <label for='p1x'>Line Start X/Long: <input name='p1x' id='p1x' value='{{ sx | safe }}' /></label>
+                <label for='p1y'>Line Start Y/Lat: <input name='p1y' id='p1y' value='{{ sy | safe }}' /></label>
+                <br />
+
+                <label for='p2x'>Line End X/Long: <input name='p2x' id='p2x' value='{{ ex | safe }}' /></label>
+                <label for='p2y'>Line End Y/Lat: <input name='p2y' id='p2y' value='{{ ey | safe }}' /></label>
+                <br />
+
+                <br />
+
+                <input type="button" name="Route" value="Route" id="BtnRoute" />
+            </form>
+        </div>
+        <div id="map-canvas"></div>
+        <script type="text/javascript">
+            var map_sx = {{ sx | safe }};
+            var map_sy = {{ sy | safe }};
+
+            var map_ex = {{ ex | safe }};
+            var map_ey = {{ ey | safe }};
+
+            var map_lines = [];
+            var map_polys = [];
+
+            // set in initialize();
+            var map = null;
+            var directionsDisplay = new google.maps.DirectionsRenderer();
+            var directionsService = new google.maps.DirectionsService();
+
+            var btnRoute = $("#BtnRoute");
+            var input_sLat = $("#p1y");
+            var input_sLong = $("#p1x");
+            var input_eLat = $("#p2y");
+            var input_eLong = $("#p2x");
+
+            function create_line(slat, slong, elat, elong) {
+                var lineCoords = [
+                    new google.maps.LatLng(slat, slong),
+                    new google.maps.LatLng(elat, elong)
+                ];
+
+                var newLine = new google.maps.Polyline({
+                    path: lineCoords,
+                    strokeColor: '#FF0000',
+                    strokeOpacity: 1.0,
+                    strokeWeight: 2
+                });
+
+                return newLine;
+            }
+
+            function clear_polys() {
+                // Clear existing polygons
+                for (var idx in map_polys) {
+                    map_polys[idx].setMap(null);
+                }
+                map_polys = [];
+            }
+
+            function create_poly_with_label(raw_coords, label) {
+                // assumes raw_coords given as [x/long, y/lat] pairs
+                var coords = [];
+
+                for (var idx in raw_coords) {
+                    coords.push(new google.maps.LatLng(raw_coords[idx][1], raw_coords[idx][0]));
+                }
+
+                var newPoly = new google.maps.Polygon({
+                    paths: coords,
+                    strokeColor: '#FF0000',
+                    strokeOpacity: 0.8,
+                    strokeWeight: 3,
+                    fillColor: '#FF0000',
+                    fillOpacity: 0.35
+                });
+
+                return newPoly;
+            }
+
+            function event_updateLine(e) {
+                // create the line
+                var p1x = input_sLong.val();
+                var p1y = input_sLat.val();
+                var p2y = input_eLat.val();
+                var p2x = input_eLong.val();
+
+                /*
+                var newLine = create_line(
+                    p1y,
+                    p1x,
+                    p2y,
+                    p2x
+                );
+
+                // remove all previous lines
+                for (var idx in map_lines) {
+                    map_lines[idx].setMap(null);
+                }
+                map_lines = [];
+
+                // add to map
+                map_lines.push(newLine);
+                newLine.setMap(map);
+                */
+
+                // get and display directions between the two points
+                dirReq = {
+                    origin: new google.maps.LatLng(p1y, p1x),
+                    destination: new google.maps.LatLng(p2y, p2x),
+                    provideRouteAlternatives: false,
+                    travelMode: google.maps.TravelMode.DRIVING,
+                    unitSystem: google.maps.UnitSystem.IMPERIAL
+                }
+
+                directionsService.route(dirReq, function(result, status) {
+                    if (status == google.maps.DirectionsStatus.OK) {
+                        console.log(result['routes'][0]);
+                        directionsDisplay.setDirections(result);
+
+                        $.ajax({
+                            url: '/queryv3',
+                            data: {
+                                'polyline': result['routes'][0]['overview_polyline']
+                            },
+                            success: function(data, status, xhr) {
+                                console.log(data);
+
+                                clear_polys();
+
+                                for (var zip in data) {
+                                    for (var idx in data[zip]) {
+                                        var cur_shape_coords = data[zip][idx];
+                                        var new_poly = create_poly_with_label(cur_shape_coords, zip);
+
+                                        map_polys.push(new_poly);
+                                        new_poly.setMap(map);
+                                    }
+                                }
+                            },
+                            dataType: 'json'
+                        });
+                    }
+                });
+
+                /*
+                // check for intersecting polygons
+                $.ajax({
+                    url: '/query', // + urlComps.join('/'),
+                    data: {
+                        'p1x': p1x,
+                        'p1y': p1y,
+                        'p2x': p2x,
+                        'p2y': p2y
+                    },
+                    success: function(data, status, xhr) {
+                        console.log(data);
+
+                        clear_polys();
+
+                        for (var zip in data) {
+                            for (var idx in data[zip]) {
+                                var cur_shape_coords = data[zip][idx];
+                                var new_poly = create_poly_with_label(cur_shape_coords, zip);
+
+                                map_polys.push(new_poly);
+                                new_poly.setMap(map);
+                            }
+                        }
+                    },
+                    dataType: 'json'
+                });
+                */
+            }
+
+            function initialize() {
+                var mapOptions = {
+                    center: { lat: map_sy, lng: map_sx},
+                    zoom: 8
+                };
+                map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
+
+                directionsDisplay.setMap(map);
+
+                btnRoute.click(function(e) {
+                    e.preventDefault();
+                    event_updateLine(e);
+                });
+
+                input_sLat.change(function(e) {event_updateLine(e);});
+                input_sLong.change(function(e) {event_updateLine(e);});
+                input_eLat.change(function(e) {event_updateLine(e);});
+                input_eLong.change(function(e) {event_updateLine(e);});
+            }
+
+            google.maps.event.addDomListener(window, 'load', initialize);
+        </script
+    </body>
+</html>
